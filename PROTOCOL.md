@@ -8,7 +8,50 @@ reconstruct the original data — no server, no network, no account required.
 
 ---
 
-## Frame String Format
+## GIF Structure
+
+Every qrvid GIF contains **two types of frames** in a fixed order:
+
+```
+[Beacon frame] [Data frame 1] [Data frame 2] … [Data frame N] → loops back to beacon
+```
+
+Because the GIF loops forever, a scanner that starts mid-sequence will naturally
+catch any missed frames on the next loop without any extra coordination.
+
+---
+
+## Beacon Frame
+
+The **beacon frame** is the first frame of every loop. It is visually distinct:
+a small QR code centered on a solid black background (≈55% of frame width).
+This contrast is intentional and works on any screen — colour, greyscale,
+e-ink, or thermal printer.
+
+**Beacon string format:**
+```
+QRVD:BEACON:<SESSION>/<TOTAL>
+```
+
+Example: `QRVD:BEACON:A3F2B1C0/21`
+
+**Beacon parsing regex:**
+```
+/^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/
+```
+
+The beacon carries the session ID and total data frame count. The decoder uses
+it to:
+1. Initialise the session on first sight
+2. Detect session changes (new GIF being shown)
+3. Track loop count for UI feedback ("Loop 2 — 3 frames remaining")
+
+The beacon frame does **not** count toward `TOTAL`. `TOTAL` is the count of
+data frames only.
+
+---
+
+## Data Frame String Format
 
 Each QR code in the GIF encodes a single UTF-8 string:
 

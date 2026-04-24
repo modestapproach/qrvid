@@ -81,21 +81,43 @@
   const CHUNK_SIZES = { L: 553, M: 432, Q: 302, H: 228 }
 
   const FRAME_REGEX = /^QRVD:([0-9A-F]{8}):(\d+)\/(\d+):([0-9A-F]{4}):(.+)$/
+  const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/
 
   function buildFrameString(sessionId, idx, total, crc, encodedData) {
     return 'QRVD:' + sessionId + ':' + idx + '/' + total + ':' + crc + ':' + encodedData
   }
 
+  function buildBeaconString(sessionId, total) {
+    return 'QRVD:BEACON:' + sessionId + '/' + total
+  }
+
   function parseFrame(str) {
-    const m = str.trim().toUpperCase().match(FRAME_REGEX)
+    const s = str.trim().toUpperCase()
+    const m = s.match(FRAME_REGEX)
     if (!m) return null
     return {
+      type: 'data',
       sessionId: m[1],
       frameIndex: parseInt(m[2], 10),
       totalFrames: parseInt(m[3], 10),
       crc: m[4],
       encodedData: m[5],
     }
+  }
+
+  function parseBeacon(str) {
+    const m = str.trim().toUpperCase().match(BEACON_REGEX)
+    if (!m) return null
+    return {
+      type: 'beacon',
+      sessionId: m[1],
+      totalFrames: parseInt(m[2], 10),
+    }
+  }
+
+  // Parses any qrvid string — returns { type: 'data'|'beacon'|null }
+  function parseAny(str) {
+    return parseFrame(str) || parseBeacon(str) || null
   }
 
   function compress(str) {
@@ -128,11 +150,18 @@
     const sessionId = generateSessionId()
     const total = chunks.length
 
-    return chunks.map(function (chunk, i) {
+    const dataFrames = chunks.map(function (chunk, i) {
       const crc = crc16Hex(chunk)
       const encoded = base45Encode(chunk)
       return buildFrameString(sessionId, i + 1, total, crc, encoded)
     })
+
+    return {
+      beacon: buildBeaconString(sessionId, total),
+      dataFrames: dataFrames,
+      sessionId: sessionId,
+      total: total,
+    }
   }
 
   function decode(frameStrings) {
@@ -183,12 +212,16 @@
     base45Decode: base45Decode,
     generateSessionId: generateSessionId,
     buildFrameString: buildFrameString,
+    buildBeaconString: buildBeaconString,
     parseFrame: parseFrame,
+    parseBeacon: parseBeacon,
+    parseAny: parseAny,
     compress: compress,
     decompress: decompress,
     createFrameStrings: createFrameStrings,
     decode: decode,
     CHUNK_SIZES: CHUNK_SIZES,
     FRAME_REGEX: FRAME_REGEX,
+    BEACON_REGEX: BEACON_REGEX,
   }
 })

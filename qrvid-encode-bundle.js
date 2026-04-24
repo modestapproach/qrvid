@@ -6980,19 +6980,37 @@ var QRVidEncoder = (() => {
         }
         const CHUNK_SIZES = { L: 553, M: 432, Q: 302, H: 228 };
         const FRAME_REGEX = /^QRVD:([0-9A-F]{8}):(\d+)\/(\d+):([0-9A-F]{4}):(.+)$/;
+        const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/;
         function buildFrameString(sessionId, idx, total, crc, encodedData) {
           return "QRVD:" + sessionId + ":" + idx + "/" + total + ":" + crc + ":" + encodedData;
         }
+        function buildBeaconString(sessionId, total) {
+          return "QRVD:BEACON:" + sessionId + "/" + total;
+        }
         function parseFrame(str) {
-          const m = str.trim().toUpperCase().match(FRAME_REGEX);
+          const s = str.trim().toUpperCase();
+          const m = s.match(FRAME_REGEX);
           if (!m) return null;
           return {
+            type: "data",
             sessionId: m[1],
             frameIndex: parseInt(m[2], 10),
             totalFrames: parseInt(m[3], 10),
             crc: m[4],
             encodedData: m[5]
           };
+        }
+        function parseBeacon(str) {
+          const m = str.trim().toUpperCase().match(BEACON_REGEX);
+          if (!m) return null;
+          return {
+            type: "beacon",
+            sessionId: m[1],
+            totalFrames: parseInt(m[2], 10)
+          };
+        }
+        function parseAny(str) {
+          return parseFrame(str) || parseBeacon(str) || null;
         }
         function compress(str) {
           return pako.deflate(str);
@@ -7018,11 +7036,17 @@ var QRVidEncoder = (() => {
           const chunks = splitIntoChunks(compressed, chunkSize);
           const sessionId = generateSessionId();
           const total = chunks.length;
-          return chunks.map(function(chunk, i) {
+          const dataFrames = chunks.map(function(chunk, i) {
             const crc = crc16Hex(chunk);
             const encoded = base45Encode(chunk);
             return buildFrameString(sessionId, i + 1, total, crc, encoded);
           });
+          return {
+            beacon: buildBeaconString(sessionId, total),
+            dataFrames,
+            sessionId,
+            total
+          };
         }
         function decode(frameStrings) {
           if (!frameStrings || frameStrings.length === 0) throw new Error("No frames provided");
@@ -7069,13 +7093,17 @@ var QRVidEncoder = (() => {
           base45Decode,
           generateSessionId,
           buildFrameString,
+          buildBeaconString,
           parseFrame,
+          parseBeacon,
+          parseAny,
           compress,
           decompress,
           createFrameStrings,
           decode,
           CHUNK_SIZES,
-          FRAME_REGEX
+          FRAME_REGEX,
+          BEACON_REGEX
         };
       });
     }
@@ -7096,6 +7124,28 @@ var QRVidEncoder = (() => {
       color: { dark: "#000000", light: "#ffffff" }
     });
     return canvas.getContext("2d").getImageData(0, 0, size, size);
+  }
+  async function renderBeaconFrame(text, size) {
+    const canvas = document.createElement("canvas");
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(0, 0, size, size);
+    const qrSize = Math.round(size * 0.55);
+    const offset = Math.round((size - qrSize) / 2);
+    const qrCanvas = document.createElement("canvas");
+    qrCanvas.width = qrSize;
+    qrCanvas.height = qrSize;
+    await QRCode.toCanvas(qrCanvas, text, {
+      errorCorrectionLevel: "L",
+      // beacon has minimal data, L is fine
+      margin: 3,
+      width: qrSize,
+      color: { dark: "#000000", light: "#ffffff" }
+    });
+    ctx.drawImage(qrCanvas, offset, offset, qrSize, qrSize);
+    return ctx.getImageData(0, 0, size, size);
   }
   function rgbaToIndexed(imageData) {
     const pixels = new Uint8Array(imageData.width * imageData.height);
@@ -7122,12 +7172,14 @@ var QRVidEncoder = (() => {
     const frameDelay = opts.frameDelay || 500;
     const frameSize = opts.frameSize || 300;
     const url = opts.url || null;
-    const frameStrings = core.createFrameStrings(payload, { ecLevel, url });
-    const imageData = await Promise.all(
-      frameStrings.map((str) => renderFrame(str, frameSize, ecLevel))
+    const { beacon, dataFrames, total } = core.createFrameStrings(payload, { ecLevel, url });
+    const beaconImageData = await renderBeaconFrame(beacon, frameSize);
+    const dataImageData = await Promise.all(
+      dataFrames.map((str) => renderFrame(str, frameSize, ecLevel))
     );
-    const gifBytes = assembleGif(imageData, frameSize, frameDelay);
-    return { gifBytes, frameCount: frameStrings.length, frameStrings };
+    const allFrames = [beaconImageData, ...dataImageData];
+    const gifBytes = assembleGif(allFrames, frameSize, frameDelay);
+    return { gifBytes, frameCount: total, frameStrings: dataFrames };
   }
   function buildHandoffUrl(url, payload) {
     const envelope = { v: 1, data: typeof payload === "string" ? payload : JSON.stringify(payload) };

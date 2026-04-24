@@ -4,7 +4,7 @@ const QRCode = require('qrcode')
 const GifWriter = require('omggif').GifWriter
 const core = require('../qrvid-core.js')
 
-// Render a QR code frame string to a canvas, return RGBA ImageData
+// Render a data QR code frame to a canvas, return RGBA ImageData
 async function renderFrame(text, size, ecLevel) {
   const canvas = document.createElement('canvas')
   canvas.width = size
@@ -16,6 +16,35 @@ async function renderFrame(text, size, ecLevel) {
     color: { dark: '#000000', light: '#ffffff' },
   })
   return canvas.getContext('2d').getImageData(0, 0, size, size)
+}
+
+// Beacon frame: small QR centered on a black canvas — visually distinct in B&W
+// Works on greyscale/e-ink/thermal screens — no color dependency
+async function renderBeaconFrame(text, size) {
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+
+  // Fill entire frame black
+  ctx.fillStyle = '#000000'
+  ctx.fillRect(0, 0, size, size)
+
+  // Render QR at 55% of frame size, centered
+  const qrSize = Math.round(size * 0.55)
+  const offset = Math.round((size - qrSize) / 2)
+  const qrCanvas = document.createElement('canvas')
+  qrCanvas.width = qrSize
+  qrCanvas.height = qrSize
+  await QRCode.toCanvas(qrCanvas, text, {
+    errorCorrectionLevel: 'L',  // beacon has minimal data, L is fine
+    margin: 3,
+    width: qrSize,
+    color: { dark: '#000000', light: '#ffffff' },
+  })
+  ctx.drawImage(qrCanvas, offset, offset, qrSize, qrSize)
+
+  return ctx.getImageData(0, 0, size, size)
 }
 
 // Convert RGBA ImageData to palette-indexed pixels (2-color: white=0, black=1)
@@ -53,12 +82,20 @@ async function encodeToGif(payload, opts) {
   const frameSize = opts.frameSize || 300
   const url = opts.url || null
 
-  const frameStrings = core.createFrameStrings(payload, { ecLevel, url })
-  const imageData = await Promise.all(
-    frameStrings.map(str => renderFrame(str, frameSize, ecLevel))
+  const { beacon, dataFrames, total } = core.createFrameStrings(payload, { ecLevel, url })
+
+  // Beacon rendered first — black canvas with small centered QR
+  const beaconImageData = await renderBeaconFrame(beacon, frameSize)
+
+  // Data frames rendered full-bleed
+  const dataImageData = await Promise.all(
+    dataFrames.map(str => renderFrame(str, frameSize, ecLevel))
   )
-  const gifBytes = assembleGif(imageData, frameSize, frameDelay)
-  return { gifBytes, frameCount: frameStrings.length, frameStrings }
+
+  // GIF: beacon + data frames (loops back to beacon on replay)
+  const allFrames = [beaconImageData, ...dataImageData]
+  const gifBytes = assembleGif(allFrames, frameSize, frameDelay)
+  return { gifBytes, frameCount: total, frameStrings: dataFrames }
 }
 
 // Build the hash-fragment URL that a target site can consume

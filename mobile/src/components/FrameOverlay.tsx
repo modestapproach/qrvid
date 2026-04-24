@@ -19,10 +19,16 @@ export function FrameOverlay({ state, progress }: Props) {
         <View style={styles.collectingBox}>
           <Text style={styles.collectingText}>
             {progress.received} / {progress.total} frames
+            {progress.loopCount > 0 ? `  ·  Loop ${progress.loopCount + 1}` : ''}
           </Text>
           <ProgressBar received={progress.received} total={progress.total} />
           {progress.sessionId ? (
-            <Text style={styles.sessionText}>Session {progress.sessionId.slice(0, 4)}…</Text>
+            <Text style={styles.sessionText}>
+              Session {progress.sessionId.slice(0, 4)}…
+              {progress.total - progress.received > 0
+                ? `  ${progress.total - progress.received} frame(s) remaining`
+                : ''}
+            </Text>
           ) : null}
         </View>
       ) : state === 'complete' ? (

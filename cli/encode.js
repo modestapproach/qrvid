@@ -62,7 +62,26 @@ async function renderFrame(text, size, ecLevel) {
     width: size,
     color: { dark: '#000000', light: '#ffffff' },
   })
+  return canvas.getContext('2d').getImageData(0, 0, size, size)
+}
+
+// Beacon: small QR centered on solid black canvas — B&W, works on any screen
+async function renderBeaconFrame(text, size) {
+  const canvas = createCanvas(size, size)
   const ctx = canvas.getContext('2d')
+  ctx.fillStyle = '#000000'
+  ctx.fillRect(0, 0, size, size)
+
+  const qrSize = Math.round(size * 0.55)
+  const offset = Math.round((size - qrSize) / 2)
+  const qrCanvas = createCanvas(qrSize, qrSize)
+  await QRCode.toCanvas(qrCanvas, text, {
+    errorCorrectionLevel: 'L',
+    margin: 3,
+    width: qrSize,
+    color: { dark: '#000000', light: '#ffffff' },
+  })
+  ctx.drawImage(qrCanvas, offset, offset, qrSize, qrSize)
   return ctx.getImageData(0, 0, size, size)
 }
 
@@ -103,21 +122,22 @@ async function main() {
     data = fs.readFileSync(path.resolve(args._file), 'utf-8')
   }
 
-  const frameStrings = core.createFrameStrings(data, { ecLevel: args.ecLevel, url: args.url })
-  process.stderr.write('Encoding ' + frameStrings.length + ' frame(s)…\n')
+  const { beacon, dataFrames, total } = core.createFrameStrings(data, { ecLevel: args.ecLevel, url: args.url })
+  process.stderr.write('Encoding ' + total + ' data frame(s) + 1 beacon…\n')
 
-  const imageData = await Promise.all(
-    frameStrings.map(str => renderFrame(str, args.size, args.ecLevel))
+  const beaconImageData = await renderBeaconFrame(beacon, args.size)
+  const dataImageData = await Promise.all(
+    dataFrames.map(str => renderFrame(str, args.size, args.ecLevel))
   )
 
-  const gifBytes = assembleGif(imageData, args.size, args.delay)
+  const gifBytes = assembleGif([beaconImageData, ...dataImageData], args.size, args.delay)
   const outPath = path.resolve(args.output)
   fs.writeFileSync(outPath, gifBytes)
 
   process.stderr.write(
     'Written ' + gifBytes.length + ' bytes → ' + outPath + '\n' +
-    'Frames: ' + frameStrings.length + ' × ' + args.delay + 'ms = ' +
-    (frameStrings.length * args.delay / 1000).toFixed(1) + 's scan time\n'
+    'Frames: 1 beacon + ' + total + ' data × ' + args.delay + 'ms = ' +
+    ((total + 1) * args.delay / 1000).toFixed(1) + 's per loop\n'
   )
 }
 
