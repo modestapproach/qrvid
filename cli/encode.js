@@ -122,7 +122,7 @@ async function main() {
     data = fs.readFileSync(path.resolve(args._file), 'utf-8')
   }
 
-  const { beacon, dataFrames, total } = core.createFrameStrings(data, { ecLevel: args.ecLevel, url: args.url })
+  const { beacon, dataFrames, total } = core.createFrameStrings(data, { ecLevel: args.ecLevel, url: args.url, delayMs: args.delay })
   process.stderr.write('Encoding ' + total + ' data frame(s) + 1 beacon…\n')
 
   const beaconImageData = await renderBeaconFrame(beacon, args.size)

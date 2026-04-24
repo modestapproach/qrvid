@@ -8,6 +8,7 @@ export interface SessionProgress {
   total: number
   loopCount: number        // how many times the beacon has been seen (= full loops)
   sessionId: string | null
+  delayMs: number | null   // intended ms/frame from the beacon, null if not encoded
 }
 
 export interface SessionResult {
@@ -19,7 +20,7 @@ export interface SessionResult {
   reset: () => void
 }
 
-const EMPTY_PROGRESS: SessionProgress = { received: 0, total: 0, loopCount: 0, sessionId: null }
+const EMPTY_PROGRESS: SessionProgress = { received: 0, total: 0, loopCount: 0, sessionId: null, delayMs: null }
 
 export function useSession(): SessionResult {
   const [state, setState] = useState<ScanState>('idle')
@@ -32,12 +33,14 @@ export function useSession(): SessionResult {
   const sessionIdRef = useRef<string | null>(null)
   const totalFramesRef = useRef<number>(0)
   const loopCountRef = useRef<number>(0)
+  const delayMsRef = useRef<number | null>(null)
 
   const reset = useCallback(() => {
     framesRef.current.clear()
     sessionIdRef.current = null
     totalFramesRef.current = 0
     loopCountRef.current = 0
+    delayMsRef.current = null
     setState('idle')
     setProgress(EMPTY_PROGRESS)
     setResult(null)
@@ -59,6 +62,7 @@ export function useSession(): SessionResult {
       if (!sessionIdRef.current) {
         sessionIdRef.current = sessionId
         totalFramesRef.current = totalFrames
+        delayMsRef.current = beacon.delayMs
         setState('collecting')
       } else {
         // Same session beacon = completed one more loop
@@ -70,6 +74,7 @@ export function useSession(): SessionResult {
         total: totalFrames,
         sessionId,
         loopCount: loopCountRef.current,
+        delayMs: beacon.delayMs,
       }))
       return
     }

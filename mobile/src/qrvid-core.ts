@@ -41,7 +41,7 @@ export function base45Decode(str: string): Uint8Array {
 }
 
 export const FRAME_REGEX = /^QRVD:([0-9A-F]{8}):(\d+)\/(\d+):([0-9A-F]{4}):(.+)$/
-export const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/
+export const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)(?:\/(\d+))?$/
 
 export interface ParsedFrame {
   type: 'data'
@@ -56,6 +56,7 @@ export interface ParsedBeacon {
   type: 'beacon'
   sessionId: string
   totalFrames: number
+  delayMs: number | null
 }
 
 export interface DecodedPayload {
@@ -80,7 +81,12 @@ export function parseFrame(str: string): ParsedFrame | null {
 export function parseBeacon(str: string): ParsedBeacon | null {
   const m = str.trim().toUpperCase().match(BEACON_REGEX)
   if (!m) return null
-  return { type: 'beacon', sessionId: m[1], totalFrames: parseInt(m[2], 10) }
+  return {
+    type: 'beacon',
+    sessionId: m[1],
+    totalFrames: parseInt(m[2], 10),
+    delayMs: m[3] != null ? parseInt(m[3], 10) : null,
+  }
 }
 
 export function decode(frameStrings: string[]): DecodedPayload {

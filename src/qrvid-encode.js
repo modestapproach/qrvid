@@ -82,7 +82,7 @@ async function encodeToGif(payload, opts) {
   const frameSize = opts.frameSize || 300
   const url = opts.url || null
 
-  const { beacon, dataFrames, total } = core.createFrameStrings(payload, { ecLevel, url })
+  const { beacon, dataFrames, total } = core.createFrameStrings(payload, { ecLevel, url, delayMs: frameDelay })
 
   // Beacon rendered first — black canvas with small centered QR
   const beaconImageData = await renderBeaconFrame(beacon, frameSize)

@@ -30,21 +30,36 @@ e-ink, or thermal printer.
 
 **Beacon string format:**
 ```
-QRVD:BEACON:<SESSION>/<TOTAL>
+QRVD:BEACON:<SESSION>/<TOTAL>/<DELAY_MS>
 ```
 
-Example: `QRVD:BEACON:A3F2B1C0/21`
+Example: `QRVD:BEACON:A3F2B1C0/21/500`
+
+| Field | Example | Description |
+|---|---|---|
+| `SESSION` | `A3F2B1C0` | 8 uppercase hex chars — same session ID as all data frames |
+| `TOTAL` | `21` | Count of data frames only (beacon not included) |
+| `DELAY_MS` | `500` | Intended milliseconds per frame as set by the encoder |
 
 **Beacon parsing regex:**
 ```
-/^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/
+/^QRVD:BEACON:([0-9A-F]{8})\/(\d+)(?:\/(\d+))?$/
 ```
 
-The beacon carries the session ID and total data frame count. The decoder uses
-it to:
-1. Initialise the session on first sight
-2. Detect session changes (new GIF being shown)
-3. Track loop count for UI feedback ("Loop 2 — 3 frames remaining")
+The third field (`DELAY_MS`) is optional for backward compatibility — old decoders
+that only parse `SESSION/TOTAL` simply ignore it.
+
+The GIF file itself also encodes frame timing in its header (GIF89a delay field),
+but a camera watching a screen cannot read GIF metadata — it only sees pixels.
+The beacon is the only channel by which the encoder can communicate the intended
+speed to the decoder.
+
+The decoder uses the beacon to:
+1. Initialise the session and learn frame count on first sight
+2. Display speed info immediately: "designed for 2 fps"
+3. Show time remaining: `framesLeft × delayMs` (e.g. "~9s remaining")
+4. Detect when the GIF on screen has changed (different session ID)
+5. Track loop count for UI: "Loop 2 — 3 frames remaining"
 
 The beacon frame does **not** count toward `TOTAL`. `TOTAL` is the count of
 data frames only.

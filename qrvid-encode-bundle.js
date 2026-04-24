@@ -6980,12 +6980,13 @@ var QRVidEncoder = (() => {
         }
         const CHUNK_SIZES = { L: 553, M: 432, Q: 302, H: 228 };
         const FRAME_REGEX = /^QRVD:([0-9A-F]{8}):(\d+)\/(\d+):([0-9A-F]{4}):(.+)$/;
-        const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/;
+        const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)(?:\/(\d+))?$/;
         function buildFrameString(sessionId, idx, total, crc, encodedData) {
           return "QRVD:" + sessionId + ":" + idx + "/" + total + ":" + crc + ":" + encodedData;
         }
-        function buildBeaconString(sessionId, total) {
-          return "QRVD:BEACON:" + sessionId + "/" + total;
+        function buildBeaconString(sessionId, total, delayMs) {
+          const base = "QRVD:BEACON:" + sessionId + "/" + total;
+          return delayMs != null ? base + "/" + delayMs : base;
         }
         function parseFrame(str) {
           const s = str.trim().toUpperCase();
@@ -7006,7 +7007,8 @@ var QRVidEncoder = (() => {
           return {
             type: "beacon",
             sessionId: m[1],
-            totalFrames: parseInt(m[2], 10)
+            totalFrames: parseInt(m[2], 10),
+            delayMs: m[3] != null ? parseInt(m[3], 10) : null
           };
         }
         function parseAny(str) {
@@ -7029,6 +7031,7 @@ var QRVidEncoder = (() => {
           const ecLevel = opts.ecLevel || "M";
           const url = opts.url || null;
           const chunkSize = opts.chunkSize || CHUNK_SIZES[ecLevel] || CHUNK_SIZES.M;
+          const delayMs = opts.delayMs != null ? opts.delayMs : null;
           const dataStr = typeof payload === "string" ? payload : JSON.stringify(payload);
           const envelope = { v: 1, data: dataStr };
           if (url) envelope.url = url;
@@ -7042,10 +7045,11 @@ var QRVidEncoder = (() => {
             return buildFrameString(sessionId, i + 1, total, crc, encoded);
           });
           return {
-            beacon: buildBeaconString(sessionId, total),
+            beacon: buildBeaconString(sessionId, total, delayMs),
             dataFrames,
             sessionId,
-            total
+            total,
+            delayMs
           };
         }
         function decode(frameStrings) {
@@ -7172,7 +7176,7 @@ var QRVidEncoder = (() => {
     const frameDelay = opts.frameDelay || 500;
     const frameSize = opts.frameSize || 300;
     const url = opts.url || null;
-    const { beacon, dataFrames, total } = core.createFrameStrings(payload, { ecLevel, url });
+    const { beacon, dataFrames, total } = core.createFrameStrings(payload, { ecLevel, url, delayMs: frameDelay });
     const beaconImageData = await renderBeaconFrame(beacon, frameSize);
     const dataImageData = await Promise.all(
       dataFrames.map((str) => renderFrame(str, frameSize, ecLevel))

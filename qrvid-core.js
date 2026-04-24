@@ -81,14 +81,16 @@
   const CHUNK_SIZES = { L: 553, M: 432, Q: 302, H: 228 }
 
   const FRAME_REGEX = /^QRVD:([0-9A-F]{8}):(\d+)\/(\d+):([0-9A-F]{4}):(.+)$/
-  const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)$/
+  // Third field (delayMs) is optional for backward compat with old beacons
+  const BEACON_REGEX = /^QRVD:BEACON:([0-9A-F]{8})\/(\d+)(?:\/(\d+))?$/
 
   function buildFrameString(sessionId, idx, total, crc, encodedData) {
     return 'QRVD:' + sessionId + ':' + idx + '/' + total + ':' + crc + ':' + encodedData
   }
 
-  function buildBeaconString(sessionId, total) {
-    return 'QRVD:BEACON:' + sessionId + '/' + total
+  function buildBeaconString(sessionId, total, delayMs) {
+    const base = 'QRVD:BEACON:' + sessionId + '/' + total
+    return delayMs != null ? base + '/' + delayMs : base
   }
 
   function parseFrame(str) {
@@ -112,6 +114,7 @@
       type: 'beacon',
       sessionId: m[1],
       totalFrames: parseInt(m[2], 10),
+      delayMs: m[3] != null ? parseInt(m[3], 10) : null,
     }
   }
 
@@ -140,6 +143,7 @@
     const ecLevel = opts.ecLevel || 'M'
     const url = opts.url || null
     const chunkSize = opts.chunkSize || CHUNK_SIZES[ecLevel] || CHUNK_SIZES.M
+    const delayMs = opts.delayMs != null ? opts.delayMs : null
 
     const dataStr = typeof payload === 'string' ? payload : JSON.stringify(payload)
     const envelope = { v: 1, data: dataStr }
@@ -157,10 +161,11 @@
     })
 
     return {
-      beacon: buildBeaconString(sessionId, total),
+      beacon: buildBeaconString(sessionId, total, delayMs),
       dataFrames: dataFrames,
       sessionId: sessionId,
       total: total,
+      delayMs: delayMs,
     }
   }
 
