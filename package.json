@@ -1,0 +1,24 @@
+{
+  "name": "qrvid",
+  "version": "1.0.0",
+  "description": "An idea for permissionless data communications",
+  "main": "html5-qrcode.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:37821/git/modestapproach/qrvid"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "base45": "^2.0.1",
+    "canvas": "^3.2.3",
+    "gif-encoder-2": "^1.0.5",
+    "omggif": "^1.0.10",
+    "pako": "^2.1.0",
+    "qrcode": "^1.5.4"
+  }
+}

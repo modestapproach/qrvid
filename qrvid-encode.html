@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>qrvid — QR Code GIF Encoder</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="stylesheet" href="smokesignal.css">
+<link rel="stylesheet" href="qrvid-encode.css">
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>qrvid</h1>
+    <p class="tagline">Encode any data into a scannable animated QR GIF — no server required.</p>
+    <nav>
+      <a href="smokesignal.html">Live Transfer ↔</a>
+    </nav>
+  </header>
+
+  <main>
+    <form id="encode-form">
+
+      <section class="card">
+        <label for="data-input"><strong>Data to encode</strong>
+          <span class="hint">Paste text, JSON, a conversation export, etc. Or drag a file onto the box.</span>
+        </label>
+        <textarea id="data-input" rows="8" spellcheck="false"
+          placeholder='{"messages":[{"role":"user","content":"Hello!"}]}'></textarea>
+        <div class="file-row">
+          <label class="file-label" for="file-input">📂 Load file…</label>
+          <input type="file" id="file-input" hidden>
+        </div>
+      </section>
+
+      <section class="card">
+        <label for="url-input"><strong>Target URL</strong> <em>(optional)</em>
+          <span class="hint">When scanned, the app will open this URL with your data injected as a hash fragment, e.g. <code>https://example.com#qrvid=…</code></span>
+        </label>
+        <input type="url" id="url-input" placeholder="https://chatgpt.com/import">
+      </section>
+
+      <section class="card options-grid">
+        <fieldset>
+          <legend><strong>Error correction</strong></legend>
+          <label><input type="radio" name="ec-level" value="L"> L — lowest (more data/frame)</label>
+          <label><input type="radio" name="ec-level" value="M" checked> M — medium <em>(recommended)</em></label>
+          <label><input type="radio" name="ec-level" value="Q"> Q — high</label>
+          <label><input type="radio" name="ec-level" value="H"> H — highest (more robust)</label>
+        </fieldset>
+
+        <div class="slider-group">
+          <label for="delay-input"><strong>Frame delay</strong>
+            <span id="delay-label" class="value-badge">500 ms</span>
+          </label>
+          <input type="range" id="delay-input" min="100" max="2000" step="50" value="500">
+          <div class="range-hints"><span>100 ms (fast)</span><span>2 s (slow)</span></div>
+        </div>
+
+        <div class="slider-group">
+          <label for="size-input"><strong>QR frame size</strong>
+            <span id="size-label" class="value-badge">300 px</span>
+          </label>
+          <input type="range" id="size-input" min="150" max="600" step="50" value="300">
+          <div class="range-hints"><span>150 px</span><span>600 px</span></div>
+        </div>
+      </section>
+
+      <div class="action-row">
+        <button type="submit" id="generate-btn">Generate GIF</button>
+        <span id="status" class="status-msg" role="status"></span>
+      </div>
+    </form>
+
+    <section id="preview-section" hidden>
+      <div class="preview-wrap">
+        <img id="preview-img" alt="Animated QR code GIF preview">
+      </div>
+      <div class="preview-meta">
+        <span id="frame-count"></span>
+        <span id="scan-time"></span>
+      </div>
+      <a id="download-btn" class="btn-download" download>⬇ Download GIF</a>
+    </section>
+
+    <section id="handoff-section" class="card" hidden>
+      <strong>Hash-fragment handoff URL</strong>
+      <span class="hint">This is where your data lands when someone scans the GIF and taps "Open in Browser". The target site reads <code>window.location.hash</code> — nothing hits the server.</span>
+      <code id="handoff-url" class="url-display"></code>
+    </section>
+  </main>
+</div>
+<script src="qrvid-encode-bundle.js"></script>
+</body>
+</html>

@@ -2,3 +2,7 @@ sent
 received
 uploads
 __pycache__
+node_modules/
+mobile/node_modules/
+*.pid
+smokesignal.pid
