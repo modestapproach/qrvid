@@ -7185,11 +7185,16 @@
     const gifBytes = assembleGif(allFrames, frameSize, frameDelay);
     return { gifBytes, frameCount: total, frameStrings: dataFrames };
   }
+  function utf8ToB64(str) {
+    return btoa(Array.from(new TextEncoder().encode(str), (b) => String.fromCharCode(b)).join(""));
+  }
+  function b64ToUtf8(b64) {
+    return new TextDecoder().decode(Uint8Array.from(atob(b64), (c) => c.charCodeAt(0)));
+  }
   function buildHandoffUrl(url, payload) {
     const envelope = { v: 1, data: typeof payload === "string" ? payload : JSON.stringify(payload) };
     envelope.url = url;
-    const fragment = btoa(JSON.stringify(envelope));
-    return url + "#qrvid=" + fragment;
+    return url + "#qrvid=" + utf8ToB64(JSON.stringify(envelope));
   }
   window.addEventListener("load", function() {
     const form = document.getElementById("encode-form");
@@ -7221,7 +7226,7 @@
       try {
         const hash = window.location.hash;
         if (!hash.startsWith("#qrvid=")) return;
-        const envelope = JSON.parse(atob(hash.slice(7)));
+        const envelope = JSON.parse(b64ToUtf8(hash.slice(7)));
         if (envelope.data) dataInput.value = envelope.data;
         if (envelope.url) urlInput.value = envelope.url;
         history.replaceState(null, "", location.pathname + location.search);

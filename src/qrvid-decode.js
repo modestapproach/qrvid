@@ -187,9 +187,13 @@ function formatFps(delayMs) {
   return fps >= 1 ? fps.toFixed(fps < 2 ? 1 : 0) + ' fps' : (delayMs / 1000).toFixed(1) + 's/frame'
 }
 
+function utf8ToB64(str) {
+  return btoa(Array.from(new TextEncoder().encode(str), b => String.fromCharCode(b)).join(''))
+}
+
 function buildHandoffUrl(payload) {
   const envelope = { v: payload.v, data: payload.data, url: payload.url }
-  return payload.url + '#qrvid=' + btoa(JSON.stringify(envelope))
+  return payload.url + '#qrvid=' + utf8ToB64(JSON.stringify(envelope))
 }
 
 function el(id) { return document.getElementById(id) }
