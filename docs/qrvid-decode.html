@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>qrvid — Scanner</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #000;
+  color: #e6edf3;
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+/* ── Full-screen camera ── */
+#camera-wrap {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+/* ── Scanning corner guides ── */
+#guides {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+.guide {
+  position: absolute;
+  width: 44px; height: 44px;
+  border-color: rgba(88,166,255,.8);
+  border-style: solid;
+}
+.guide.tl { top: 20%; left: 10%; border-width: 3px 0 0 3px; }
+.guide.tr { top: 20%; right: 10%; border-width: 3px 3px 0 0; }
+.guide.bl { bottom: 38%; left: 10%; border-width: 0 0 3px 3px; }
+.guide.br { bottom: 38%; right: 10%; border-width: 0 3px 3px 0; }
+
+/* ── Top nav ── */
+#nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(env(safe-area-inset-top, 0px), 10px) 16px 10px;
+  background: linear-gradient(to bottom, rgba(0,0,0,.7) 0%, transparent 100%);
+}
+#nav a {
+  color: rgba(255,255,255,.7);
+  text-decoration: none;
+  font-size: .82rem;
+}
+#nav a:hover { color: #fff; }
+#nav-title {
+  font-size: .95rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.5px;
+}
+#flip-btn {
+  background: rgba(255,255,255,.15);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: .82rem;
+  cursor: pointer;
+}
+#flip-btn:hover { background: rgba(255,255,255,.25); }
+
+/* ── Overlay (progress) ── */
+#overlay {
+  position: fixed;
+  bottom: max(env(safe-area-inset-bottom, 0px), 20px);
+  left: 16px; right: 16px;
+  z-index: 20;
+}
+#overlay-hint {
+  text-align: center;
+  color: rgba(255,255,255,.6);
+  font-size: .9rem;
+  padding: 10px;
+  pointer-events: none;
+}
+#progress-box {
+  background: rgba(13,17,23,.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid #21262d;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#overlay-status {
+  font-size: .95rem;
+  font-weight: 600;
+  color: #e6edf3;
+  text-align: center;
+}
+#overlay-bar-track {
+  height: 6px;
+  background: #21262d;
+  border-radius: 3px;
+  overflow: hidden;
+}
+#overlay-bar-fill {
+  height: 100%;
+  background: #58a6ff;
+  border-radius: 3px;
+  width: 0%;
+  transition: width .2s;
+}
+#overlay-sub {
+  font-size: .78rem;
+  color: #8b949e;
+  text-align: center;
+  font-family: monospace;
+}
+
+/* ── Result panel (slides up from bottom) ── */
+#result-section {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 30;
+  background: #0d1117;
+  border-top: 1px solid #21262d;
+  border-radius: 16px 16px 0 0;
+  padding: 20px 16px max(env(safe-area-inset-bottom, 0px), 24px);
+  max-height: 70vh;
+  overflow-y: auto;
+  animation: slideUp .25s ease-out;
+}
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+#result-section h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #e6edf3;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#result-section h2::before {
+  content: '✓';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  background: #238636;
+  border-radius: 50%;
+  font-size: .75rem;
+  font-weight: 700;
+}
+.result-card {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.result-label {
+  font-size: .72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #8b949e;
+  margin-bottom: 6px;
+}
+#result-data {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: .78rem;
+  color: #e6edf3;
+  line-height: 1.5;
+  word-break: break-all;
+  white-space: pre-wrap;
+}
+#result-chars {
+  font-size: .72rem;
+  color: #6e7681;
+  margin-top: 4px;
+}
+#result-url {
+  font-size: .82rem;
+  color: #58a6ff;
+  word-break: break-all;
+}
+.btn-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.btn {
+  flex: 1;
+  border: none;
+  border-radius: 8px;
+  padding: 11px 14px;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+}
+#open-btn { background: #1f6feb; color: #fff; }
+#open-btn:hover { background: #388bfd; }
+#copy-btn { background: #21262d; color: #e6edf3; }
+#copy-btn:hover { background: #30363d; }
+#scan-again-btn { background: #21262d; color: #e6edf3; margin-top: 8px; width: 100%; display: block; }
+#scan-again-btn:hover { background: #30363d; }
+</style>
+</head>
+<body>
+
+<div id="camera-wrap"></div>
+
+<div id="guides" aria-hidden="true">
+  <div class="guide tl"></div>
+  <div class="guide tr"></div>
+  <div class="guide bl"></div>
+  <div class="guide br"></div>
+</div>
+
+<nav id="nav">
+  <a href="index.html">← Home</a>
+  <span id="nav-title">qrvid Scanner</span>
+  <button id="flip-btn">Flip</button>
+</nav>
+
+<div id="overlay">
+  <p id="overlay-hint">Point your camera at an animated QR GIF</p>
+  <div id="progress-box" style="display:none">
+    <div id="overlay-status"></div>
+    <div id="overlay-bar-track"><div id="overlay-bar-fill"></div></div>
+    <div id="overlay-sub"></div>
+  </div>
+</div>
+
+<section id="result-section" hidden>
+  <h2>Decoded</h2>
+
+  <div class="result-card">
+    <div class="result-label">Data</div>
+    <div id="result-data"></div>
+    <div id="result-chars"></div>
+  </div>
+
+  <div id="result-url-section" class="result-card" hidden>
+    <div class="result-label">Target URL</div>
+    <div id="result-url"></div>
+    <div class="btn-row" style="margin-top:10px">
+      <button class="btn" id="open-btn">Open in Browser →</button>
+    </div>
+    <p style="font-size:.72rem;color:#6e7681;margin-top:8px">
+      Opens the URL with your data injected as a hash fragment. Nothing hits the server.
+    </p>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" id="copy-btn">Copy data</button>
+  </div>
+  <button class="btn" id="scan-again-btn">Scan again</button>
+</section>
+
+<script src="qrvid-decode-bundle.js"></script>
+</body>
+</html>
