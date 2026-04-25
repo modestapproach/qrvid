@@ -137,6 +137,27 @@ window.addEventListener('load', function () {
     sizeLabel.textContent = sizeInput.value + ' px'
   })
 
+  // If arriving via a scanner handoff, pre-fill from the hash fragment
+  ;(function loadFromHash() {
+    try {
+      const hash = window.location.hash
+      if (!hash.startsWith('#qrvid=')) return
+      const envelope = JSON.parse(atob(hash.slice(7)))
+      if (envelope.data) dataInput.value = envelope.data
+      if (envelope.url) urlInput.value = envelope.url
+      history.replaceState(null, '', location.pathname + location.search)
+    } catch {}
+  })()
+
+  const demoBtn = document.getElementById('demo-btn')
+  if (demoBtn) {
+    demoBtn.addEventListener('click', function () {
+      dataInput.value = 'You scanned a qrvid GIF and arrived here, pre-filled.\n\nqrvid encodes any data into a looping animated QR GIF — no server, no app, no network. The GIF plays on any screen. A phone camera reads it frame by frame and reassembles the payload.\n\nClick "Generate GIF" to encode this message. Share the GIF anywhere. Whoever scans it lands back here, ready to continue the loop.'
+      urlInput.value = 'https://modestapproach.github.io/qrvid/qrvid-encode.html'
+      dataInput.focus()
+    })
+  }
+
   fileInput.addEventListener('change', function () {
     if (!fileInput.files.length) return
     const reader = new FileReader()
