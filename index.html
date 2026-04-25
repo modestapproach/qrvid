@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>qrvid</title>
+<title>qrvid — data in light</title>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -13,60 +13,174 @@ body {
   font-family: system-ui, -apple-system, sans-serif;
   background: #0d1117;
   color: #e6edf3;
-  min-height: 100dvh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2rem 1rem;
+  line-height: 1.55;
+  padding: 2rem 1rem 4rem;
 }
-.wrap { max-width: 560px; width: 100%; text-align: center; }
-h1 { font-size: 3rem; font-weight: 800; letter-spacing: -2px; color: #58a6ff; margin-bottom: .4rem; }
-.sub { color: #8b949e; font-size: 1rem; margin-bottom: 2.5rem; line-height: 1.5; }
-.cards { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
-@media (max-width: 420px) { .cards { grid-template-columns: 1fr; } h1 { font-size: 2.2rem; } }
+.wrap { max-width: 760px; margin: 0 auto; }
+
+a.logo {
+  display: inline-block;
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: -2px;
+  color: #58a6ff;
+  text-decoration: none;
+  margin-bottom: .2rem;
+}
+.tagline { color: #8b949e; font-size: 1rem; margin-bottom: 2.5rem; }
+
+.hero {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 2rem;
+  align-items: center;
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 16px;
+  padding: 1.6rem;
+  margin-bottom: 2.5rem;
+}
+@media (max-width: 620px) { .hero { grid-template-columns: 1fr; } }
+.hero-gif {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #fff;
+  margin: 0 auto;
+}
+.hero h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: .5rem;
+  color: #e6edf3;
+}
+.hero p { font-size: .92rem; color: #8b949e; margin-bottom: .75rem; }
+.hero .scan-hint {
+  font-size: .8rem;
+  color: #58a6ff;
+  font-weight: 600;
+}
+
+h2.section { font-size: 1.1rem; font-weight: 700; margin: 2rem 0 .8rem; color: #e6edf3; }
+h2.section:first-of-type { margin-top: 0; }
+p.body { font-size: .92rem; color: #c9d1d9; margin-bottom: 1rem; }
+.body a { color: #58a6ff; text-decoration: none; }
+.body a:hover { text-decoration: underline; }
+
+.cards { display: grid; gap: .9rem; grid-template-columns: 1fr 1fr; margin: 1.2rem 0; }
+@media (max-width: 480px) { .cards { grid-template-columns: 1fr; } }
 a.card {
   display: block;
   background: #161b22;
   border: 1px solid #21262d;
-  border-radius: 12px;
-  padding: 1.6rem 1.2rem;
+  border-radius: 10px;
+  padding: 1.2rem;
   text-decoration: none;
   color: inherit;
   transition: border-color .15s, background .15s;
 }
 a.card:hover { border-color: #58a6ff; background: #1c2128; }
-.card-icon { font-size: 2rem; margin-bottom: .6rem; }
-.card-title { font-size: 1rem; font-weight: 700; color: #e6edf3; margin-bottom: .35rem; }
-.card-desc { font-size: .82rem; color: #8b949e; line-height: 1.45; }
-.footer { margin-top: 2.5rem; font-size: .78rem; color: #484f58; }
-.footer a { color: #30363d; text-decoration: none; }
-.footer a:hover { color: #8b949e; }
+.card-icon { font-size: 1.6rem; margin-bottom: .4rem; }
+.card-title { font-size: .98rem; font-weight: 700; color: #e6edf3; margin-bottom: .25rem; }
+.card-desc { font-size: .8rem; color: #8b949e; line-height: 1.45; }
+
+ul.usecases {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .5rem 1.2rem;
+  margin: .5rem 0 1rem;
+}
+@media (max-width: 520px) { ul.usecases { grid-template-columns: 1fr; } }
+ul.usecases li {
+  font-size: .85rem;
+  color: #c9d1d9;
+  padding: .35rem 0 .35rem 1.1rem;
+  position: relative;
+}
+ul.usecases li::before {
+  content: '→';
+  position: absolute;
+  left: 0;
+  color: #58a6ff;
+  font-weight: 600;
+}
+
+.origin {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-left: 3px solid #58a6ff;
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0 1.5rem;
+}
+.origin h3 { font-size: .9rem; font-weight: 700; margin-bottom: .4rem; color: #e6edf3; }
+.origin p { font-size: .85rem; color: #8b949e; }
+.origin a { color: #58a6ff; text-decoration: none; }
+.origin a:hover { text-decoration: underline; }
+
+.footer { margin-top: 2.5rem; font-size: .78rem; color: #484f58; text-align: center; }
+.footer a { color: #6e7681; text-decoration: none; margin: 0 .5rem; }
+.footer a:hover { color: #c9d1d9; }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>qrvid</h1>
-  <p class="sub">Encode any data into an animated QR GIF.<br>No server. No network. No link that expires.</p>
+  <a class="logo" href="./">qrvid</a>
+  <p class="tagline">Encode any data into a scannable animated QR GIF. No server. No network. No link that expires.</p>
+
+  <section class="hero">
+    <img class="hero-gif" src="demo.gif" alt="An animated QR code GIF cycling through 7 frames — point your camera at it" />
+    <div>
+      <h2>This GIF contains a manifesto.</h2>
+      <p>Six frames cycling once every half second. About 5 KB of text encoded into light. Point a phone camera at it — or use the <a href="qrvid-decode.html" style="color:#58a6ff">Scanner</a> on this site — and the message will reassemble itself.</p>
+      <p class="scan-hint">↑ Scan it with the Scanner. Watch what happens.</p>
+    </div>
+  </section>
+
+  <h2 class="section">What is this?</h2>
+  <p class="body">qrvid turns arbitrary data — a document, a configured chatbot conversation, a complete HTML page, a saved game state, a multi-language manual — into a looping animated GIF made of QR codes. A camera reassembles the payload one frame at a time. The GIF loops forever, so missed frames are caught on the next pass: self-healing, with no protocol machinery.</p>
+  <p class="body">A standard QR code holds about 3 KB. That covers a URL. It doesn't cover a document. qrvid breaks the payload into chunks, plays them back as a GIF, and your phone puts them back together. There is no server in the loop. No expiring link. No account. No app store.</p>
+
+  <h2 class="section">Try it</h2>
   <div class="cards">
     <a class="card" href="qrvid-encode.html">
       <div class="card-icon">🎞</div>
       <div class="card-title">GIF Encoder</div>
-      <div class="card-desc">Turn text, JSON, or a file into a scannable animated QR GIF. Download and share anywhere.</div>
+      <div class="card-desc">Paste text, JSON, or a file. Optionally point at a target URL. Generate and download an animated GIF anyone can scan.</div>
     </a>
     <a class="card" href="qrvid-decode.html">
       <div class="card-icon">📷</div>
       <div class="card-title">GIF Scanner</div>
-      <div class="card-desc">Point your phone camera at an animated QR GIF. Assembles the data automatically as frames loop.</div>
-    </a>
-    <a class="card" href="smokesignal.html" style="grid-column:1/-1">
-      <div class="card-icon">↔</div>
-      <div class="card-title">Live Transfer</div>
-      <div class="card-desc">Real-time bidirectional file transfer between two devices facing each other using live QR codes.</div>
+      <div class="card-desc">Point your phone at any qrvid GIF — including the one above. Assembles the data automatically as the frames loop.</div>
     </a>
   </div>
+
+  <h2 class="section">Where it shines</h2>
+  <ul class="usecases">
+    <li>Pre-filled web apps and forms — no link required</li>
+    <li>E-ink packaging, smart labels, kiosks</li>
+    <li>Offline-first content delivery at venues</li>
+    <li>Air-gapped data transfer through visible light</li>
+    <li>Digital signage that hands data to passers-by</li>
+    <li>Configured chatbot conversations, save states</li>
+    <li>Complete HTML apps delivered through a screen</li>
+    <li>Multi-language manuals from a single label</li>
+  </ul>
+
+  <h2 class="section">Origin</h2>
+  <div class="origin">
+    <h3>Built on top of smokesignal</h3>
+    <p>qrvid extends <a href="https://github.com/jcomeauictx/smokesignal">jcomeauictx/smokesignal</a>, an experiment in bidirectional QR-code data transfer between two devices facing each other. smokesignal proved the physical concept — visible light as a permissionless data channel — and qrvid takes the same idea and ships it as a one-way, asynchronous, broadcast-friendly GIF that plays on any screen, including printed paper and e-ink.</p>
+  </div>
+
   <p class="footer">
-    <a href="PROTOCOL.md">Protocol spec</a> ·
     <a href="https://github.com/modestapproach/qrvid">GitHub</a>
+    ·
+    <a href="https://github.com/modestapproach/qrvid/blob/master/PROTOCOL.md">Protocol spec</a>
+    ·
+    <a href="https://github.com/jcomeauictx/smokesignal">smokesignal</a>
   </p>
 </div>
 </body>
