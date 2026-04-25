@@ -2,6 +2,11 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
+html, body {
+  height: auto;
+  overflow: auto;
+}
+
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: #0d1117;
