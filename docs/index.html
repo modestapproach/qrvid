@@ -14,9 +14,56 @@ body {
   background: #0d1117;
   color: #e6edf3;
   line-height: 1.55;
-  padding: 2rem 1rem 4rem;
+  padding: 0 0 4rem;
 }
-.wrap { max-width: 760px; margin: 0 auto; }
+.wrap { max-width: 760px; margin: 0 auto; padding: 2rem 1rem 0; }
+
+#topnav {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(13, 17, 23, .92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid #21262d;
+}
+#topnav .inner {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .65rem 1rem;
+}
+#topnav .brand {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: -.5px;
+  color: #58a6ff;
+  text-decoration: none;
+}
+#topnav .links { display: flex; gap: .5rem; }
+#topnav a.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .42rem .85rem;
+  border-radius: 8px;
+  border: 1px solid #21262d;
+  background: #161b22;
+  color: #e6edf3;
+  text-decoration: none;
+  font-size: .85rem;
+  font-weight: 600;
+  transition: border-color .15s, background .15s;
+}
+#topnav a.btn:hover { border-color: #58a6ff; background: #1c2128; }
+#topnav a.btn.primary {
+  background: #1f6feb;
+  border-color: #1f6feb;
+  color: #fff;
+}
+#topnav a.btn.primary:hover { background: #388bfd; border-color: #388bfd; }
 
 a.logo {
   display: inline-block;
@@ -126,6 +173,16 @@ ul.usecases li::before {
 </style>
 </head>
 <body>
+<nav id="topnav">
+  <div class="inner">
+    <a href="./" class="brand">qrvid</a>
+    <div class="links">
+      <a class="btn" href="qrvid-decode.html">📷 Scanner</a>
+      <a class="btn primary" href="qrvid-encode.html">🎞 Encoder</a>
+    </div>
+  </div>
+</nav>
+
 <div class="wrap">
   <a class="logo" href="./">qrvid</a>
   <p class="tagline">Encode any data into a scannable animated QR GIF. No server. No network. No link that expires.</p>
@@ -133,9 +190,9 @@ ul.usecases li::before {
   <section class="hero">
     <img class="hero-gif" src="demo.gif" alt="An animated QR code GIF cycling through 7 frames — point your camera at it" />
     <div>
-      <h2>This GIF contains a manifesto.</h2>
-      <p>Six frames cycling once every half second. About 5 KB of text encoded into light. Point a phone camera at it — or use the <a href="qrvid-decode.html" style="color:#58a6ff">Scanner</a> on this site — and the message will reassemble itself.</p>
-      <p class="scan-hint">↑ Scan it with the Scanner. Watch what happens.</p>
+      <h2>Try it: scan this GIF.</h2>
+      <p>Six frames cycling once every half second. About 5 KB of text encoded into light. Open the <a href="qrvid-decode.html" style="color:#58a6ff">Scanner</a> on another device and point it at this GIF — the full message reassembles itself in a few seconds.</p>
+      <p class="scan-hint">↑ Live demo. No tricks.</p>
     </div>
   </section>
 
