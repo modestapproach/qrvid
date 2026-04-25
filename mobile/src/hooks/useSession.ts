@@ -110,6 +110,7 @@ export function useSession(): SessionResult {
       total: totalFrames,
       sessionId,
       loopCount: loopCountRef.current,
+      delayMs: delayMsRef.current,
     })
     setState('collecting')
 

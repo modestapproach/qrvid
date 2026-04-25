@@ -55,7 +55,7 @@ The output is a standard `.gif` file that plays anywhere: browsers, phones, TVs,
 Every loop begins with a **beacon frame**: a small QR code floating on a solid black background, visually unlike every data frame (which are full-bleed white). It encodes:
 
 ```
-QRVD:BEACON:<SESSION>/<TOTAL>
+QRVD:BEACON:<SESSION>/<TOTAL>/<DELAY_MS>
 ```
 
 The beacon serves three purposes:
@@ -174,7 +174,7 @@ This is executable content delivered through visible light.
 
 **Beacon:**
 ```
-QRVD:BEACON:<SESSION>/<TOTAL>
+QRVD:BEACON:<SESSION>/<TOTAL>/<DELAY_MS>
 ```
 
 **Data frame:**
@@ -255,6 +255,10 @@ npm install
 echo '{"hello":"world"}' | node cli/encode.js --stdin -o out.gif
 node cli/encode.js myfile.json --url https://example.com/import -o out.gif
 ```
+
+### Decode (web)
+
+Open `http://127.0.0.1:8080/qrvid-decode.html` in your phone browser, or visit the [GitHub Pages deployment](https://modestapproach.github.io/qrvid/qrvid-decode.html). Point your camera at a qrvid GIF playing on any screen.
 
 ### Decode (mobile)
 
