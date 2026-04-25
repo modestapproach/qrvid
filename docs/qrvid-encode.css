@@ -57,35 +57,6 @@ body {
   padding: 1.5rem 1rem 4rem;
 }
 
-/* ── Header ── */
-header {
-  text-align: center;
-  padding: 2rem 0 1.5rem;
-  border-bottom: 1px solid #21262d;
-  margin-bottom: 2rem;
-}
-
-header h1 {
-  font-size: 2.4rem;
-  font-weight: 700;
-  letter-spacing: -1px;
-  margin: 0 0 .3rem;
-  color: #58a6ff;
-}
-
-.tagline {
-  color: #8b949e;
-  margin: 0 0 .8rem;
-  font-size: .95rem;
-}
-
-nav a {
-  color: #58a6ff;
-  font-size: .85rem;
-  text-decoration: none;
-}
-nav a:hover { text-decoration: underline; }
-
 /* ── Cards ── */
 .card {
   background: #161b22;
