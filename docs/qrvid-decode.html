@@ -11,7 +11,10 @@
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
+html {
+  height: 100%;
+}
+body {
   height: 100%;
   background: #000;
   color: #e6edf3;
@@ -140,6 +143,7 @@ html, body {
   padding: 20px 16px max(env(safe-area-inset-bottom, 0px), 24px);
   max-height: 70vh;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   animation: slideUp .25s ease-out;
 }
 @keyframes slideUp {
